@@ -15,6 +15,7 @@ Requires(post): rpm-helper
 Requires(preun): rpm-helper
 BuildRequires:	mysql-devel
 BuildRequires:	postgresql-devel
+BuildRoot:	%{_tmppath}/%{name}-%{version}-build
 
 %description
 Sphinx is a full-text search engine, distributed under GPL version 2.
