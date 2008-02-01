@@ -3,7 +3,7 @@
 Summary:	Free open-source SQL full-text search engine
 Name:		sphinx
 Version:	0.9.8
-Release:	%mkrel 1
+Release:	%mkrel 0.1
 License:	GPL
 Group:		System/Servers
 URL:		http://sphinxsearch.com/
@@ -16,7 +16,7 @@ Patch1:		sphinx-mdv_conf.diff
 Requires(post): rpm-helper
 Requires(preun): rpm-helper
 BuildRequires:	expat-devel
-BuildRequires:	libstemmer-devel
+#BuildRequires:	libstemmer-devel
 BuildRequires:	mysql-devel
 BuildRequires:	postgresql-devel
 BuildRoot:	%{_tmppath}/%{name}-%{version}-build
@@ -49,7 +49,7 @@ cp %{SOURCE3} %{name}.logrotate
 libtoolize --copy --force; aclocal; autoheader; automake --foreign --ignore-deps; autoconf
 %serverbuild
 
-export CPPFLAGS="-I%{_includedir}/libstemmer"
+#export CPPFLAGS="-I%{_includedir}/libstemmer"
 
 %configure2_5x \
     --sysconfdir=%{_sysconfdir}/%{name} \
@@ -58,8 +58,8 @@ export CPPFLAGS="-I%{_includedir}/libstemmer"
     --with-pgsql
 
 # hack to enable external stemmer libs
-perl -pi -e "s|^LIBSTEMMER_LIBS.*|LIBSTEMMER_LIBS=-lstemmer|g" src/Makefile
-perl -pi -e "s|^#define USE_LIBSTEMMER.*|#define USE_LIBSTEMMER 1|g" config/config.h
+#perl -pi -e "s|^LIBSTEMMER_LIBS.*|LIBSTEMMER_LIBS=-lstemmer|g" src/Makefile
+#perl -pi -e "s|^#define USE_LIBSTEMMER.*|#define USE_LIBSTEMMER 1|g" config/config.h
 
 %make
 
