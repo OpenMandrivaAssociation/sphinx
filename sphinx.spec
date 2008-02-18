@@ -1,9 +1,9 @@
 %define snap svn-r1112
 
-Summary:	Free open-source SQL full-text search engine
+Summary:	SQL full-text search engine
 Name:		sphinx
 Version:	0.9.8
-Release:	%mkrel 1
+Release:	%mkrel 2
 License:	GPL
 Group:		System/Servers
 URL:		http://sphinxsearch.com/
