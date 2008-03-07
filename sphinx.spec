@@ -1,9 +1,9 @@
-%define snap svn-r1112
+%define snap rc1
 
 Summary:	SQL full-text search engine
 Name:		sphinx
 Version:	0.9.8
-Release:	%mkrel 2
+Release:	%mkrel 3
 License:	GPL
 Group:		System/Servers
 URL:		http://sphinxsearch.com/
@@ -19,7 +19,7 @@ BuildRequires:	expat-devel
 BuildRequires:	libstemmer-devel
 BuildRequires:	mysql-devel
 BuildRequires:	postgresql-devel
-BuildRoot:	%{_tmppath}/%{name}-%{version}-build
+BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
 
 %description
 Sphinx is a full-text search engine, distributed under GPL version 2.
