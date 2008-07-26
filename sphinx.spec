@@ -1,22 +1,26 @@
-%define snap rc2
+%define	major 0
+%define libname %mklibname sphinxclient %{major}
+%define develname %mklibname sphinxclient -d
 
 Summary:	SQL full-text search engine
 Name:		sphinx
 Version:	0.9.8
-Release:	%mkrel 5
+Release:	%mkrel 6
 License:	GPL
 Group:		System/Servers
 URL:		http://sphinxsearch.com/
-Source0:	http://sphinxsearch.com/downloads/%{name}-%{version}-%{snap}.tar.gz
+Source0:	http://sphinxsearch.com/downloads/%{name}-%{version}.tar.gz
 Source1:	%{name}.init
 Source2:	%{name}.sysconfig
 Source3:	%{name}.logrotate
 Patch0:		sphinx-DESTDIR.diff
 Patch1:		sphinx-mdv_conf.diff
+Patch2:		sphinx-libsphinxclient-version-info_fix.diff
 Requires(post): rpm-helper
 Requires(preun): rpm-helper
 BuildRequires:	expat-devel
 BuildRequires:	libstemmer-devel
+BuildRequires:	libtool
 BuildRequires:	mysql-devel
 BuildRequires:	postgresql-devel
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
@@ -35,19 +39,45 @@ custom XML format.
 As for the name, Sphinx is an acronym which is officially decoded as SQL Phrase
 Index. Yes, I know about CMU's Sphinx project.
 
+%package -n	%{libname}
+Summary:	Shared sphinxclient library
+Group:          System/Libraries
+
+%description -n	%{libname}
+This package contains the shared sphinxclient library.
+
+%package -n	%{develname}
+Summary:	Development files for the sphinxclient library
+Group:		Development/C
+Requires:	%{libname} = %{version}
+Provides:	sphinxclient-devel = %{version}-%{release}
+Provides:	lib%{name}-devel = %{version}-%{release}
+
+%description -n	%{develname}
+This package contains the development files for the sphinxclient library.
+
 %prep
 
-%setup -q -n %{name}-%{version}-%{snap}
+%setup -q -n %{name}-%{version}
 %patch0 -p0
 %patch1 -p0
+%patch2 -p0
 
 cp %{SOURCE1} %{name}.init
 cp %{SOURCE2} %{name}.sysconfig
 cp %{SOURCE3} %{name}.logrotate
 
 %build
-libtoolize --copy --force; aclocal; autoheader; automake --foreign --ignore-deps; autoconf
 %serverbuild
+
+pushd api/libsphinxclient
+libtoolize --copy --force; aclocal
+sh ./buildconf.sh
+%configure2_5x
+make
+popd
+
+libtoolize --copy --force; aclocal; autoheader; automake --foreign --ignore-deps; autoconf
 
 export CPPFLAGS="-I%{_includedir}/libstemmer"
 
@@ -64,6 +94,7 @@ perl -pi -e "s|^#define USE_LIBSTEMMER.*|#define USE_LIBSTEMMER 1|g" config/conf
 
 %make
 
+
 %install
 rm -rf %{buildroot}
 
@@ -76,8 +107,10 @@ install -d %{buildroot}/var/run/%{name}
 install -d %{buildroot}/var/log/%{name}
 
 %makeinstall_std
+%makeinstall_std -C api/libsphinxclient
 
 mv %{buildroot}%{_sysconfdir}/%{name}/%{name}.conf.dist %{buildroot}%{_sysconfdir}/%{name}/%{name}.conf
+mv %{buildroot}%{_sysconfdir}/%{name}/%{name}-min.conf.dist %{buildroot}%{_sysconfdir}/%{name}/%{name}-min.conf
 mv %{buildroot}%{_bindir}/%{name}-searchd %{buildroot}%{_sbindir}/%{name}-searchd
 
 install -m0755 %{name}.init %{buildroot}%{_initrddir}/%{name}-searchd
@@ -96,16 +129,25 @@ touch %{buildroot}/var/log/sphinx/sphinx-query.log
 %preun
 %_preun_service %{name}-searchd
 
+%if %mdkversion < 200900
+%post -n %{libname} -p /sbin/ldconfig
+%endif
+
+%if %mdkversion < 200900
+%postun -n %{libname} -p /sbin/ldconfig
+%endif
+
 %clean
 rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root,-)
-%doc COPYING api doc/*.html doc/*.css mysqlse/gen_data.php mysqlse/HOWTO.txt example.sql
+%doc COPYING doc/*.html doc/*.css mysqlse/gen_data.php mysqlse/HOWTO.txt example.sql
 %attr(0755,root,root) %{_initrddir}/%{name}-searchd
 %attr(0755,root,root) %dir %{_sysconfdir}/%{name}
 %attr(0644,root,root) %config(noreplace) %{_sysconfdir}/%{name}/example.sql
 %attr(0644,root,root) %config(noreplace) %{_sysconfdir}/%{name}/%{name}.conf
+%attr(0644,root,root) %config(noreplace) %{_sysconfdir}/%{name}/%{name}-min.conf
 %attr(0644,root,root) %config(noreplace) %{_sysconfdir}/sysconfig/%{name}-searchd
 %attr(0644,root,root) %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}-searchd
 %attr(0755,root,root) %{_bindir}/%{name}-indexer
@@ -117,3 +159,15 @@ rm -rf %{buildroot}
 %attr(0755,root,root) %dir /var/log/%{name}
 %attr(0644,root,root) %ghost %config(noreplace) /var/log/sphinx/sphinx-searchd.log
 %attr(0644,root,root) %ghost %config(noreplace) /var/log/sphinx/sphinx-query.log
+
+%files -n %{libname}
+%defattr(-,root,root)
+%{_libdir}/*.so.*
+
+%files -n %{develname}
+%defattr(-,root,root)
+%doc api/libsphinxclient/README
+%{_includedir}/sphinxclient.h
+%{_libdir}/*.so
+%{_libdir}/*.a
+%{_libdir}/*.la
