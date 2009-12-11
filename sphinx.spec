@@ -4,8 +4,8 @@
 
 Summary:	SQL full-text search engine
 Name:		sphinx
-Version:	0.9.8.1
-Release:	%mkrel 5
+Version:	0.9.9
+Release:	%mkrel 1
 License:	GPL
 Group:		System/Servers
 URL:		http://sphinxsearch.com/
@@ -16,6 +16,7 @@ Source3:	%{name}.logrotate
 Patch0:		sphinx-DESTDIR.diff
 Patch1:		sphinx-mdv_conf.diff
 Patch2:		sphinx-libsphinxclient-version-info_fix.diff
+Patch3:		sphinx-0.9.9-gcc43.diff
 Requires(post): rpm-helper
 Requires(preun): rpm-helper
 BuildRequires:	expat-devel
@@ -62,6 +63,7 @@ This package contains the development files for the sphinxclient library.
 %patch0 -p0
 %patch1 -p0
 %patch2 -p0
+%patch3 -p0
 
 cp %{SOURCE1} %{name}.init
 cp %{SOURCE2} %{name}.sysconfig
@@ -142,7 +144,7 @@ rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root,-)
-%doc COPYING doc/*.html doc/*.css mysqlse/gen_data.php mysqlse/HOWTO.txt example.sql
+%doc COPYING doc/*.html doc/*.css mysqlse/gen_data.php example.sql
 %attr(0755,root,root) %{_initrddir}/%{name}-searchd
 %attr(0755,root,root) %dir %{_sysconfdir}/%{name}
 %attr(0644,root,root) %config(noreplace) %{_sysconfdir}/%{name}/example.sql
@@ -151,6 +153,7 @@ rm -rf %{buildroot}
 %attr(0644,root,root) %config(noreplace) %{_sysconfdir}/sysconfig/%{name}-searchd
 %attr(0644,root,root) %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}-searchd
 %attr(0755,root,root) %{_bindir}/%{name}-indexer
+%attr(0755,root,root) %{_bindir}/%{name}-indextool
 %attr(0755,root,root) %{_bindir}/%{name}-search
 %attr(0755,root,root) %{_bindir}/%{name}-spelldump
 %attr(0755,root,root) %{_sbindir}/%{name}-searchd
