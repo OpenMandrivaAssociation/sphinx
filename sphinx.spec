@@ -5,7 +5,7 @@
 Summary:	SQL full-text search engine
 Name:		sphinx
 Version:	0.9.9
-Release:	%mkrel 2
+Release:	%mkrel 3
 License:	GPL
 Group:		System/Servers
 URL:		http://sphinxsearch.com/
@@ -172,5 +172,4 @@ rm -rf %{buildroot}
 %doc api/libsphinxclient/README
 %{_includedir}/sphinxclient.h
 %{_libdir}/*.so
-%{_libdir}/*.a
-%{_libdir}/*.la
+%{_libdir}/*.*a
