@@ -1,0 +1,8 @@
+--- Makefile.am	2008-06-08 10:57:36.000000000 +0200
++++ Makefile.am.oden	2008-12-17 18:31:26.000000000 +0100
+@@ -8,4 +8,4 @@ EXTRA_DIST = api storage sphinx.conf.in 
+ sysconf_DATA = sphinx.conf.dist sphinx-min.conf.dist example.sql
+ 
+ install-data-hook:
+-	mkdir -p $(DESTDIR)$(localstatedir)/data && mkdir -p $(DESTDIR)$(localstatedir)/log
++	mkdir -p $(DESTDIR)$(localstatedir)/sphinx && mkdir -p $(DESTDIR)/var/log/sphinx

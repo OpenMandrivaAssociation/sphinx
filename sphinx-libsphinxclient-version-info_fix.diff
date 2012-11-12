@@ -1,0 +1,11 @@
+--- api/libsphinxclient/Makefile.am	2008-07-15 15:29:05.000000000 +0200
++++ api/libsphinxclient/Makefile.am.oden	2008-07-26 17:53:41.000000000 +0200
+@@ -7,7 +7,7 @@
+ test_SOURCES = test.c
+ 
+ libsphinxclient_la_LIBADD = @LTLIBOBJS@
+-libsphinxclient_la_LDFLAGS = -release @VERSION@
++libsphinxclient_la_LDFLAGS = -version-info 1:0:0
+ 
+ include_HEADERS =   sphinxclient.h 
+ test_LDADD = .libs/libsphinxclient.a

@@ -1,0 +1,4 @@
+sources:
+  "sphinx-2.0.4-release.tar.gz:"	168794dcfb4644ac02dcce863c04b351399b0863
+  "sphinx.logrotate:"	b25a1edd481068c4d7b630342a05d5cdd4628c7e
+  "sphinx-searchd.service:"	dc5e5b468aff40aae5f8934a9002686f1775fac9
