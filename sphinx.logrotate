@@ -1,0 +1,7 @@
+/var/log/sphinx/sphinx-searchd.log /var/log/sphinx/sphinx-query.log {
+    notifempty
+    missingok
+    create 644 root root
+    monthly
+    compress
+}

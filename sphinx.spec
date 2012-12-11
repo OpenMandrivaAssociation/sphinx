@@ -4,18 +4,17 @@
 
 Summary:	SQL full-text search engine
 Name:		sphinx
-Version:	2.0.4
+Version:	2.0.6
 Release:	%mkrel 1
-License:	GPL
+License:	GPLv2
 Group:		System/Servers
 URL:		http://sphinxsearch.com/
-Source0:	http://sphinxsearch.com/downloads/%{name}-%{version}-release.tar.gz
+Source0:	http://sphinxsearch.com/files/%{name}-%{version}-release.tar.gz
 Source1:        sphinx-searchd.service
 Source2:	sphinx.logrotate
 Patch0:		sphinx-DESTDIR.diff
 Patch1:		sphinx-mdv_conf.diff
 Patch2:		sphinx-libsphinxclient-version-info_fix.diff
-Patch3:		sphinx-2.0.4-datadir.diff
 Patch4:         sphinx-2.0.3-fix_static.patch
 Patch5:		sphinx-2.0.3-gcc47.patch
 Requires(post): rpm-helper
@@ -25,7 +24,6 @@ BuildRequires:	libstemmer-devel
 BuildRequires:	libtool
 BuildRequires:	mysql-devel
 BuildRequires:	postgresql-devel
-BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
 
 %description
 Sphinx is a full-text search engine, distributed under GPL version 2.
@@ -64,9 +62,7 @@ This package contains the development files for the sphinxclient library.
 %patch0 -p0
 %patch1 -p1
 %patch2 -p0
-%patch3 -p0
 %patch4 -p1
-%patch5 -p0
 
 cp %{SOURCE1} sphinx-searchd.service
 cp %{SOURCE2} sphinx.logrotate
@@ -77,17 +73,22 @@ sed -i 's/\r//' api/java/mk.cmd
 sed -i 's/\r//' api/ruby/spec/fixtures/keywords.php
 sed -i 's/\r//' api/ruby/lib/sphinx/response.rb
 
+sed -i -e '/\/usr\/local\//d' configure.ac
+sed -i -e 's/\/usr\/local\//\/someplace\/nonexisting\//g' configure
+
+
 %build
 %serverbuild
 
 pushd api/libsphinxclient
-libtoolize --copy --force; aclocal
+#libtoolize --copy --force; aclocal
 sh ./buildconf.sh
+export CPPFLAGS="-I%{_includedir}/libstemmer"
 %configure2_5x
 make
 popd
 
-libtoolize --copy --force; aclocal; autoheader; automake --foreign --ignore-deps; autoconf
+#libtoolize --copy --force; aclocal; autoheader; automake --foreign --ignore-deps; autoconf
 
 export CPPFLAGS="-I%{_includedir}/libstemmer"
 
@@ -153,11 +154,7 @@ if [ $1 -ge 1 ] ; then
     /bin/systemctl try-restart searchd.service >/dev/null 2>&1 || :
 fi
 
-%clean
-rm -rf %{buildroot}
-
 %files
-%defattr(-,root,root,-)
 %doc COPYING doc/*.html doc/*.css mysqlse/gen_data.php example.sql
 /lib/systemd/system/sphinx-searchd.service
 %attr(0755,root,root) %dir %{_sysconfdir}/%{name}
@@ -182,11 +179,9 @@ rm -rf %{buildroot}
 %{_mandir}/man1/sphinx-spelldump.1*
 
 %files -n %{libname}
-%defattr(-,root,root)
 %{_libdir}/*.so.%{major}*
 
 %files -n %{develname}
-%defattr(-,root,root)
 %doc api/libsphinxclient/README
 %{_includedir}/sphinxclient.h
 %{_libdir}/*.so
