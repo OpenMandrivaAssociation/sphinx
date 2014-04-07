@@ -5,7 +5,7 @@
 Summary:	SQL full-text search engine
 Name:		sphinx
 Version:	2.0.6
-Release:	%mkrel 1
+Release:	2
 License:	GPLv2
 Group:		System/Servers
 URL:		http://sphinxsearch.com/
@@ -81,8 +81,10 @@ sed -i -e 's/\/usr\/local\//\/someplace\/nonexisting\//g' configure
 %serverbuild
 
 pushd api/libsphinxclient
-#libtoolize --copy --force; aclocal
+libtoolize --copy --force; aclocal
+cp configure.ac configure.in
 sh ./buildconf.sh
+cp configure.ac configure.in
 export CPPFLAGS="-I%{_includedir}/libstemmer"
 %configure2_5x
 make
@@ -107,8 +109,6 @@ perl -pi -e "s|^#define USE_LIBSTEMMER.*|#define USE_LIBSTEMMER 1|g" config/conf
 
 
 %install
-rm -rf %{buildroot}
-
 install -d %{buildroot}%{_sysconfdir}/logrotate.d
 install -d %{buildroot}%{_sbindir}
 install -d %{buildroot}/lib/systemd/system
