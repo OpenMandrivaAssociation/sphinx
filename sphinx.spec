@@ -5,7 +5,7 @@
 Summary:	SQL full-text search engine
 Name:		sphinx
 Version:	2.0.6
-Release:	2
+Release:	3
 License:	GPLv2
 Group:		System/Servers
 URL:		http://sphinxsearch.com/
