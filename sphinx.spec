@@ -8,7 +8,7 @@ Version:	2.0.6
 Release:	3
 License:	GPLv2
 Group:		System/Servers
-URL:		http://sphinxsearch.com/
+URL:		https://sphinxsearch.com/
 Source0:	http://sphinxsearch.com/files/%{name}-%{version}-release.tar.gz
 Source1:        sphinx-searchd.service
 Source2:	sphinx.logrotate
