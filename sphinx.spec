@@ -4,12 +4,12 @@
 
 Summary:	SQL full-text search engine
 Name:		sphinx
-Version:	2.0.6
-Release:	3
+Version:	2.2.11
+Release:	1
 License:	GPLv2
 Group:		System/Servers
 URL:		https://sphinxsearch.com/
-Source0:	http://sphinxsearch.com/files/%{name}-%{version}-release.tar.gz
+Source0:	https://github.com/sphinxsearch/sphinx/archive/refs/tags/%{version}-release.tar.gz
 Source1:        sphinx-searchd.service
 Source2:	sphinx.logrotate
 Patch0:		sphinx-DESTDIR.diff
@@ -17,11 +17,11 @@ Patch1:		sphinx-mdv_conf.diff
 Patch2:		sphinx-libsphinxclient-version-info_fix.diff
 Patch4:         sphinx-2.0.3-fix_static.patch
 Patch5:		sphinx-2.0.3-gcc47.patch
-Requires(post): rpm-helper
+Patch6:		sphinx-2.2.11-compile.patch
 Requires(preun): rpm-helper
 BuildRequires:	expat-devel
 BuildRequires:	libstemmer-devel
-BuildRequires:	libtool
+BuildRequires:	slibtool
 BuildRequires:	mysql-devel
 BuildRequires:	postgresql-devel
 
@@ -59,10 +59,11 @@ This package contains the development files for the sphinxclient library.
 %prep
 
 %setup -q -n %{name}-%{version}-release
-%patch0 -p0
-%patch1 -p1
-%patch2 -p0
-%patch4 -p1
+%patch 0 -p0 -b .p0~
+%patch 1 -p1 -b .p1~
+%patch 2 -p0 -b .p2~
+%patch 4 -p1 -b .p4~
+%patch 6 -p1 -b .p6~
 
 cp %{SOURCE1} sphinx-searchd.service
 cp %{SOURCE2} sphinx.logrotate
@@ -81,20 +82,20 @@ sed -i -e 's/\/usr\/local\//\/someplace\/nonexisting\//g' configure
 %serverbuild
 
 pushd api/libsphinxclient
-libtoolize --copy --force; aclocal
+slibtoolize --copy --force; aclocal; automake -a
 cp configure.ac configure.in
 sh ./buildconf.sh
 cp configure.ac configure.in
 export CPPFLAGS="-I%{_includedir}/libstemmer"
-%configure2_5x
+%configure
 make
 popd
 
-#libtoolize --copy --force; aclocal; autoheader; automake --foreign --ignore-deps; autoconf
+slibtoolize --copy --force; aclocal; autoheader; automake -a --foreign --ignore-deps; autoconf
 
 export CPPFLAGS="-I%{_includedir}/libstemmer"
 
-%configure2_5x \
+%configure \
     --sysconfdir=%{_sysconfdir}/%{name} \
     --program-prefix="%{name}-" \
     --localstatedir=/var/lib \
@@ -121,20 +122,19 @@ install -d %{buildroot}/var/log/%{name}
 
 mv %{buildroot}%{_sysconfdir}/%{name}/%{name}.conf.dist %{buildroot}%{_sysconfdir}/%{name}/%{name}.conf
 mv %{buildroot}%{_sysconfdir}/%{name}/%{name}-min.conf.dist %{buildroot}%{_sysconfdir}/%{name}/%{name}-min.conf
-mv %{buildroot}%{_bindir}/%{name}-searchd %{buildroot}%{_sbindir}/%{name}-searchd
 
 install -m0644 sphinx-searchd.service %{buildroot}/lib/systemd/system/sphinx-searchd.service
 install -m0644 %{name}.logrotate %{buildroot}%{_sysconfdir}/logrotate.d/%{name}-searchd
 
 # create ghostfiles
-touch %{buildroot}/var/log/sphinx/sphinx-searchd.log
-touch %{buildroot}/var/log/sphinx/sphinx-query.log
+touch %{buildroot}/var/log/sphinx/searchd.log
+touch %{buildroot}/var/log/sphinx/query.log
 
 rm -f %{buildroot}%{_libdir}/*.*a
 
 %post
-%create_ghostfile /var/log/sphinx/sphinx-searchd.log root root 0644
-%create_ghostfile /var/log/sphinx/sphinx-query.log root root 0644
+%create_ghostfile /var/log/sphinx/searchd.log root root 0644
+%create_ghostfile /var/log/sphinx/query.log root root 0644
 if [ $1 -eq 1 ] ; then 
     # Initial installation 
     /bin/systemctl daemon-reload >/dev/null 2>&1 || :
@@ -164,17 +164,16 @@ fi
 %attr(0644,root,root) %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}-searchd
 %attr(0755,root,root) %{_bindir}/%{name}-indexer
 %attr(0755,root,root) %{_bindir}/%{name}-indextool
-%attr(0755,root,root) %{_bindir}/%{name}-search
 %attr(0755,root,root) %{_bindir}/%{name}-spelldump
+%attr(0755,root,root) %{_bindir}/%{name}-wordbreaker
 %attr(0755,root,root) %{_sbindir}/%{name}-searchd
 %attr(0755,sphinx,sphinx) %dir /var/lib/%{name}
 %attr(0755,sphinx,sphinx) %dir /var/run/%{name}
 %attr(0755,sphinx,sphinx) %dir /var/log/%{name}
-%attr(0644,sphinx,sphinx) %ghost %config(noreplace) /var/log/sphinx/sphinx-searchd.log
-%attr(0644,sphinx,sphinx) %ghost %config(noreplace) /var/log/sphinx/sphinx-query.log
+%attr(0644,sphinx,sphinx) %ghost %config(noreplace) /var/log/sphinx/searchd.log
+%attr(0644,sphinx,sphinx) %ghost %config(noreplace) /var/log/sphinx/query.log
 %{_mandir}/man1/sphinx-indexer.1*
 %{_mandir}/man1/sphinx-indextool.1*
-%{_mandir}/man1/sphinx-search.1*
 %{_mandir}/man1/sphinx-searchd.1*
 %{_mandir}/man1/sphinx-spelldump.1*
 

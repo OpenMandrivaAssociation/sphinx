@@ -1,0 +1,526 @@
+diff -up sphinx-2.2.11-release/api/libsphinxclient/Makefile.am.p6~ sphinx-2.2.11-release/api/libsphinxclient/Makefile.am
+--- sphinx-2.2.11-release/api/libsphinxclient/Makefile.am.p6~	2024-10-22 23:11:39.256716278 +0200
++++ sphinx-2.2.11-release/api/libsphinxclient/Makefile.am	2024-10-22 23:11:39.256716278 +0200
+@@ -10,4 +10,4 @@ libsphinxclient_la_LIBADD = @LTLIBOBJS@
+ libsphinxclient_la_LDFLAGS = -version-info 1:0:0
+ 
+ include_HEADERS =   sphinxclient.h 
+-test_LDADD = .libs/libsphinxclient.a
++test_LDADD = libsphinxclient.la
+diff -up sphinx-2.2.11-release/api/libsphinxclient/sphinxclient.c.p6~ sphinx-2.2.11-release/api/libsphinxclient/sphinxclient.c
+--- sphinx-2.2.11-release/api/libsphinxclient/sphinxclient.c.p6~	2024-10-22 23:11:39.256716278 +0200
++++ sphinx-2.2.11-release/api/libsphinxclient/sphinxclient.c	2024-10-22 23:11:39.256716278 +0200
+@@ -311,7 +311,7 @@ static void sphinx_free_results ( sphinx
+ }
+ 
+ 
+-static sock_close ( int sock );
++static void sock_close ( int sock );
+ 
+ 
+ #define safe_free(_ptr) \
+@@ -1436,7 +1436,7 @@ static int sock_set_blocking ( int sock
+ }
+ 
+ 
+-static sock_close ( int sock )
++static void sock_close ( int sock )
+ {
+ 	if ( sock<0 )
+ 		return;
+diff -up sphinx-2.2.11-release/api/libsphinxclient/test.c.p6~ sphinx-2.2.11-release/api/libsphinxclient/test.c
+--- sphinx-2.2.11-release/api/libsphinxclient/test.c.p6~	2016-07-19 12:42:18.000000000 +0200
++++ sphinx-2.2.11-release/api/libsphinxclient/test.c	2024-10-22 23:11:39.256716278 +0200
+@@ -16,6 +16,7 @@
+ #include <stdarg.h>
+ #include <stdio.h>
+ #include <stdlib.h>
++#include <string.h>
+ 
+ #if _WIN32
+ #include <winsock2.h>
+diff -up sphinx-2.2.11-release/configure.ac.p6~ sphinx-2.2.11-release/configure.ac
+--- sphinx-2.2.11-release/configure.ac.p6~	2024-10-22 23:11:39.256716278 +0200
++++ sphinx-2.2.11-release/configure.ac	2024-10-22 23:12:27.417250142 +0200
+@@ -8,7 +8,8 @@ dnl ------------------------------------
+ SPHINX_CONFIGURE_PART([checking build environment])
+ 
+ AC_CONFIG_AUX_DIR([config])
+-AM_INIT_AUTOMAKE([-Wall -Werror foreign])
++AM_INIT_AUTOMAKE([-Wall subdir-objects foreign])
++AM_PROG_AR
+ AM_MAINTAINER_MODE
+ AC_CONFIG_SRCDIR([src/searchd.cpp])
+ AC_CONFIG_HEADER([config/config.h])
+diff -up sphinx-2.2.11-release/src/llsphinxjson.c.omv~ sphinx-2.2.11-release/src/llsphinxjson.c
+--- sphinx-2.2.11-release/src/llsphinxjson.c.omv~	2024-10-22 23:24:17.375043796 +0200
++++ sphinx-2.2.11-release/src/llsphinxjson.c	2024-10-22 23:24:43.165325291 +0200
+@@ -724,10 +724,10 @@ extern int yy2lex (yyscan_t yyscanner);
+  */
+ YY_DECL
+ {
+-	register yy_state_type yy_current_state;
+-	register char *yy_cp, *yy_bp;
+-	register int yy_act;
+-    struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
++	yy_state_type yy_current_state;
++	char *yy_cp, *yy_bp;
++	int yy_act;
++	struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
+ 
+ #line 28 "sphinxjson.l"
+ 
+@@ -776,7 +776,7 @@ YY_DECL
+ yy_match:
+ 		do
+ 			{
+-			register YY_CHAR yy_c = yy_ec[YY_SC_TO_UI(*yy_cp)];
++			YY_CHAR yy_c = yy_ec[YY_SC_TO_UI(*yy_cp)];
+ 			if ( yy_accept[yy_current_state] )
+ 				{
+ 				yyg->yy_last_accepting_state = yy_current_state;
+@@ -1053,9 +1053,9 @@ case YY_STATE_EOF(ccomment):
+ static int yy_get_next_buffer (yyscan_t yyscanner)
+ {
+     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
+-	register char *dest = YY_CURRENT_BUFFER_LVALUE->yy_ch_buf;
+-	register char *source = yyg->yytext_ptr;
+-	register int number_to_move, i;
++	char *dest = YY_CURRENT_BUFFER_LVALUE->yy_ch_buf;
++	char *source = yyg->yytext_ptr;
++	int number_to_move, i;
+ 	int ret_val;
+ 
+ 	if ( yyg->yy_c_buf_p > &YY_CURRENT_BUFFER_LVALUE->yy_ch_buf[yyg->yy_n_chars + 1] )
+@@ -1187,15 +1187,15 @@ static int yy_get_next_buffer (yyscan_t
+ 
+     static yy_state_type yy_get_previous_state (yyscan_t yyscanner)
+ {
+-	register yy_state_type yy_current_state;
+-	register char *yy_cp;
+-    struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
++	yy_state_type yy_current_state;
++	char *yy_cp;
++	struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
+ 
+ 	yy_current_state = yyg->yy_start;
+ 
+ 	for ( yy_cp = yyg->yytext_ptr + YY_MORE_ADJ; yy_cp < yyg->yy_c_buf_p; ++yy_cp )
+ 		{
+-		register YY_CHAR yy_c = (*yy_cp ? yy_ec[YY_SC_TO_UI(*yy_cp)] : 1);
++		YY_CHAR yy_c = (*yy_cp ? yy_ec[YY_SC_TO_UI(*yy_cp)] : 1);
+ 		if ( yy_accept[yy_current_state] )
+ 			{
+ 			yyg->yy_last_accepting_state = yy_current_state;
+@@ -1220,11 +1220,11 @@ static int yy_get_next_buffer (yyscan_t
+  */
+     static yy_state_type yy_try_NUL_trans  (yy_state_type yy_current_state , yyscan_t yyscanner)
+ {
+-	register int yy_is_jam;
+-    struct yyguts_t * yyg = (struct yyguts_t*)yyscanner; /* This var may be unused depending upon options. */
+-	register char *yy_cp = yyg->yy_c_buf_p;
++	int yy_is_jam;
++	struct yyguts_t * yyg = (struct yyguts_t*)yyscanner; /* This var may be unused depending upon options. */
++	char *yy_cp = yyg->yy_c_buf_p;
+ 
+-	register YY_CHAR yy_c = 1;
++	YY_CHAR yy_c = 1;
+ 	if ( yy_accept[yy_current_state] )
+ 		{
+ 		yyg->yy_last_accepting_state = yy_current_state;
+@@ -1986,7 +1986,7 @@ int yy2lex_destroy  (yyscan_t yyscanner)
+ #ifndef yytext_ptr
+ static void yy_flex_strncpy (char* s1, yyconst char * s2, int n , yyscan_t yyscanner)
+ {
+-	register int i;
++	int i;
+ 	for ( i = 0; i < n; ++i )
+ 		s1[i] = s2[i];
+ }
+@@ -1995,7 +1995,7 @@ static void yy_flex_strncpy (char* s1, y
+ #ifdef YY_NEED_STRLEN
+ static int yy_flex_strlen (yyconst char * s , yyscan_t yyscanner)
+ {
+-	register int n;
++	int n;
+ 	for ( n = 0; s[n]; ++n )
+ 		;
+ 
+diff -up sphinx-2.2.11-release/src/llsphinxql.c.omv~ sphinx-2.2.11-release/src/llsphinxql.c
+--- sphinx-2.2.11-release/src/llsphinxql.c.omv~	2024-10-22 23:26:53.776749940 +0200
++++ sphinx-2.2.11-release/src/llsphinxql.c	2024-10-22 23:27:18.917023998 +0200
+@@ -1142,10 +1142,10 @@ extern int yylex (yyscan_t yyscanner);
+  */
+ YY_DECL
+ {
+-	register yy_state_type yy_current_state;
+-	register char *yy_cp, *yy_bp;
+-	register int yy_act;
+-    struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
++	yy_state_type yy_current_state;
++	char *yy_cp, *yy_bp;
++	int yy_act;
++	struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
+ 
+ #line 31 "sphinxql.l"
+ 
+@@ -1194,7 +1194,7 @@ YY_DECL
+ yy_match:
+ 		do
+ 			{
+-			register YY_CHAR yy_c = yy_ec[YY_SC_TO_UI(*yy_cp)];
++			YY_CHAR yy_c = yy_ec[YY_SC_TO_UI(*yy_cp)];
+ 			if ( yy_accept[yy_current_state] )
+ 				{
+ 				yyg->yy_last_accepting_state = yy_current_state;
+@@ -2079,10 +2079,10 @@ case YY_STATE_EOF(ccomment):
+  */
+ static int yy_get_next_buffer (yyscan_t yyscanner)
+ {
+-    struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
+-	register char *dest = YY_CURRENT_BUFFER_LVALUE->yy_ch_buf;
+-	register char *source = yyg->yytext_ptr;
+-	register int number_to_move, i;
++	struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
++	char *dest = YY_CURRENT_BUFFER_LVALUE->yy_ch_buf;
++	char *source = yyg->yytext_ptr;
++	int number_to_move, i;
+ 	int ret_val;
+ 
+ 	if ( yyg->yy_c_buf_p > &YY_CURRENT_BUFFER_LVALUE->yy_ch_buf[yyg->yy_n_chars + 1] )
+@@ -2214,15 +2214,15 @@ static int yy_get_next_buffer (yyscan_t
+ 
+     static yy_state_type yy_get_previous_state (yyscan_t yyscanner)
+ {
+-	register yy_state_type yy_current_state;
+-	register char *yy_cp;
+-    struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
++	yy_state_type yy_current_state;
++	char *yy_cp;
++	struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
+ 
+ 	yy_current_state = yyg->yy_start;
+ 
+ 	for ( yy_cp = yyg->yytext_ptr + YY_MORE_ADJ; yy_cp < yyg->yy_c_buf_p; ++yy_cp )
+ 		{
+-		register YY_CHAR yy_c = (*yy_cp ? yy_ec[YY_SC_TO_UI(*yy_cp)] : 1);
++		YY_CHAR yy_c = (*yy_cp ? yy_ec[YY_SC_TO_UI(*yy_cp)] : 1);
+ 		if ( yy_accept[yy_current_state] )
+ 			{
+ 			yyg->yy_last_accepting_state = yy_current_state;
+@@ -2247,11 +2247,11 @@ static int yy_get_next_buffer (yyscan_t
+  */
+     static yy_state_type yy_try_NUL_trans  (yy_state_type yy_current_state , yyscan_t yyscanner)
+ {
+-	register int yy_is_jam;
++	int yy_is_jam;
+     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner; /* This var may be unused depending upon options. */
+-	register char *yy_cp = yyg->yy_c_buf_p;
++	char *yy_cp = yyg->yy_c_buf_p;
+ 
+-	register YY_CHAR yy_c = 1;
++	YY_CHAR yy_c = 1;
+ 	if ( yy_accept[yy_current_state] )
+ 		{
+ 		yyg->yy_last_accepting_state = yy_current_state;
+@@ -3013,7 +3013,7 @@ int yylex_destroy  (yyscan_t yyscanner)
+ #ifndef yytext_ptr
+ static void yy_flex_strncpy (char* s1, yyconst char * s2, int n , yyscan_t yyscanner)
+ {
+-	register int i;
++	int i;
+ 	for ( i = 0; i < n; ++i )
+ 		s1[i] = s2[i];
+ }
+@@ -3022,7 +3022,7 @@ static void yy_flex_strncpy (char* s1, y
+ #ifdef YY_NEED_STRLEN
+ static int yy_flex_strlen (yyconst char * s , yyscan_t yyscanner)
+ {
+-	register int n;
++	int n;
+ 	for ( n = 0; s[n]; ++n )
+ 		;
+ 
+diff -up sphinx-2.2.11-release/src/searchd.cpp.omv~ sphinx-2.2.11-release/src/searchd.cpp
+--- sphinx-2.2.11-release/src/searchd.cpp.omv~	2024-10-22 23:27:25.087091253 +0200
++++ sphinx-2.2.11-release/src/searchd.cpp	2024-10-22 23:27:32.447171473 +0200
+@@ -8580,16 +8580,16 @@ struct GenericMatchSort_fn : public CSph
+ 
+ 			case SPH_KEYPART_INT:
+ 			{
+-				register SphAttr_t aa = a->GetAttr ( m_tLocator[i] );
+-				register SphAttr_t bb = b->GetAttr ( m_tLocator[i] );
++				SphAttr_t aa = a->GetAttr ( m_tLocator[i] );
++				SphAttr_t bb = b->GetAttr ( m_tLocator[i] );
+ 				if ( aa==bb )
+ 					continue;
+ 				return ( ( m_uAttrDesc>>i ) & 1 ) ^ ( aa < bb );
+ 			}
+ 			case SPH_KEYPART_FLOAT:
+ 			{
+-				register float aa = a->GetAttrFloat ( m_tLocator[i] );
+-				register float bb = b->GetAttrFloat ( m_tLocator[i] );
++				float aa = a->GetAttrFloat ( m_tLocator[i] );
++				float bb = b->GetAttrFloat ( m_tLocator[i] );
+ 				if ( aa==bb )
+ 					continue;
+ 				return ( ( m_uAttrDesc>>i ) & 1 ) ^ ( aa < bb );
+diff -up sphinx-2.2.11-release/src/sphinx.cpp.omv~ sphinx-2.2.11-release/src/sphinx.cpp
+--- sphinx-2.2.11-release/src/sphinx.cpp.omv~	2024-10-22 23:14:43.818757237 +0200
++++ sphinx-2.2.11-release/src/sphinx.cpp	2024-10-22 23:15:09.969045447 +0200
+@@ -8346,8 +8346,8 @@ void CSphReader::ResetError()
+ #if PARANOID
+ 
+ #define SPH_VARINT_DECODE(_type,_getexpr) \
+-	register DWORD b = 0; \
+-	register _type v = 0; \
++	DWORD b = 0; \
++	_type v = 0; \
+ 	int it = 0; \
+ 	do { b = _getexpr; v = ( v<<7 ) + ( b&0x7f ); it++; } while ( b&0x80 ); \
+ 	assert ( (it-1)*7<=sizeof(_type)*8 ); \
+@@ -8356,8 +8356,8 @@ void CSphReader::ResetError()
+ #else
+ 
+ #define SPH_VARINT_DECODE(_type,_getexpr) \
+-	register DWORD b = _getexpr; \
+-	register _type res = 0; \
++	DWORD b = _getexpr; \
++	_type res = 0; \
+ 	while ( b & 0x80 ) \
+ 	{ \
+ 		res = ( res<<7 ) + ( b & 0x7f ); \
+@@ -8722,8 +8722,8 @@ SphWordID_t CSphBin::ReadVLB ()
+ 
+ DWORD CSphBin::UnzipInt ()
+ {
+-	register int b = 0;
+-	register DWORD v = 0;
++	int b = 0;
++	DWORD v = 0;
+ 	do
+ 	{
+ 		b = ReadByte();
+@@ -8736,8 +8736,8 @@ DWORD CSphBin::UnzipInt ()
+ 
+ SphOffset_t CSphBin::UnzipOffset ()
+ {
+-	register int b = 0;
+-	register SphOffset_t v = 0;
++	int b = 0;
++	SphOffset_t v = 0;
+ 	do
+ 	{
+ 		b = ReadByte();
+@@ -11536,8 +11536,8 @@ bool CSphHitBuilder::cidxDone ( int iMem
+ 
+ inline int encodeVLB ( BYTE * buf, DWORD v )
+ {
+-	register BYTE b;
+-	register int n = 0;
++	BYTE b;
++	int n = 0;
+ 
+ 	do
+ 	{
+@@ -23566,9 +23566,9 @@ SphWordID_t CSphDictKeywords::HitblockGe
+ 		}
+ 
+ 		// crc matches, check keyword
+-		register int iWordLen = iLen;
+-		register const char * a = pEntry->m_pKeyword;
+-		register const char * b = sWord;
++		int iWordLen = iLen;
++		const char * a = pEntry->m_pKeyword;
++		const char * b = sWord;
+ 		while ( *a==*b && iWordLen-- )
+ 		{
+ 			if ( !*a || !iWordLen )
+@@ -24874,7 +24874,7 @@ static inline DWORD HtmlEntityHash ( con
+ 		421, 421, 421, 421, 421, 421, 421
+ 	};
+ 
+-	register int hval = len;
++	int hval = len;
+ 	switch ( hval )
+ 	{
+ 		default:	hval += asso_values [ str[4] ];
+@@ -25257,11 +25257,11 @@ static inline int HtmlEntityLookup ( con
+ 
+ 	if ( len<=MAX_WORD_LENGTH && len>=MIN_WORD_LENGTH )
+ 	{
+-		register int key = HtmlEntityHash ( str, len );
++		int key = HtmlEntityHash ( str, len );
+ 		if ( key<=MAX_HASH_VALUE && key>=0 )
+ 			if ( len==lengthtable[key] )
+ 		{
+-			register const char * s = wordlist[key].m_sName;
++			const char * s = wordlist[key].m_sName;
+ 			if ( *str==*s && !memcmp ( str+1, s+1, len-1 ) )
+ 				return wordlist[key].m_iCode;
+ 		}
+@@ -27817,7 +27817,7 @@ const char * CSphSource_SQL::SqlUnpackCo
+ 				{
+ 					m_bUnpackFailed = true;
+ 					sphWarn ( "failed to unpack '%s', invalid column size (size=%d), "
+-						"docid="DOCID_FMT, SqlFieldName(iIndex), iPackedLen, m_tDocInfo.m_uDocID );
++						"docid=" DOCID_FMT, SqlFieldName(iIndex), iPackedLen, m_tDocInfo.m_uDocID );
+ 				}
+ 				return NULL;
+ 			}
+@@ -27833,7 +27833,7 @@ const char * CSphSource_SQL::SqlUnpackCo
+ 				{
+ 					m_bUnpackOverflow = true;
+ 					sphWarn ( "failed to unpack '%s', column size limit exceeded (size=%d),"
+-						" docid="DOCID_FMT, SqlFieldName(iIndex), (int)uSize, m_tDocInfo.m_uDocID );
++						" docid=" DOCID_FMT, SqlFieldName(iIndex), (int)uSize, m_tDocInfo.m_uDocID );
+ 				}
+ 				return NULL;
+ 			}
+diff -up sphinx-2.2.11-release/src/sphinx.h.omv~ sphinx-2.2.11-release/src/sphinx.h
+--- sphinx-2.2.11-release/src/sphinx.h.omv~	2024-10-22 23:14:25.308553103 +0200
++++ sphinx-2.2.11-release/src/sphinx.h	2024-10-22 23:14:29.588600315 +0200
+@@ -433,7 +433,7 @@ public:
+ 	{
+ 		if ( iCode<0 || iCode>=MAX_CODE )
+ 			return iCode;
+-		register int * pChunk = m_pChunk [ iCode >> CHUNK_BITS ];
++		int * pChunk = m_pChunk [ iCode >> CHUNK_BITS ];
+ 		if ( pChunk )
+ 			return pChunk [ iCode & CHUNK_MASK ];
+ 		return 0;
+diff -up sphinx-2.2.11-release/src/sphinxaot.cpp.omv~ sphinx-2.2.11-release/src/sphinxaot.cpp
+--- sphinx-2.2.11-release/src/sphinxaot.cpp.omv~	2024-10-22 23:24:51.095411832 +0200
++++ sphinx-2.2.11-release/src/sphinxaot.cpp	2024-10-22 23:24:56.565471523 +0200
+@@ -1133,7 +1133,7 @@ static inline int Utf8ToWin1251 ( BYTE *
+ 		assert ( pWord[1]>=0x80 && pWord[1]<0xC0 );
+ 
+ 		// table index D0 80..BF to 0..3F, and D1 80..BF to 40..7F
+-		register BYTE uWin = dTable [ ( pWord[1] & 0x7F ) + ( ( pWord[0] & 1 )<<6 ) ];
++		BYTE uWin = dTable [ ( pWord[1] & 0x7F ) + ( ( pWord[0] & 1 )<<6 ) ];
+ 		pWord += 2;
+ 
+ 		if ( !uWin )
+diff -up sphinx-2.2.11-release/src/sphinxint.h.omv~ sphinx-2.2.11-release/src/sphinxint.h
+--- sphinx-2.2.11-release/src/sphinxint.h.omv~	2024-10-22 23:14:33.488643328 +0200
++++ sphinx-2.2.11-release/src/sphinxint.h	2024-10-22 23:14:36.728679061 +0200
+@@ -1074,8 +1074,8 @@ inline int FindBit ( DWORD uValue )
+ 
+ inline int sphEncodeVLB8 ( BYTE * buf, uint64_t v )
+ {
+-	register BYTE b;
+-	register int n = 0;
++	BYTE b;
++	int n = 0;
+ 
+ 	do
+ 	{
+diff -up sphinx-2.2.11-release/src/sphinxplugin.cpp.omv~ sphinx-2.2.11-release/src/sphinxplugin.cpp
+--- sphinx-2.2.11-release/src/sphinxplugin.cpp.omv~	2024-10-22 23:25:11.405633451 +0200
++++ sphinx-2.2.11-release/src/sphinxplugin.cpp	2024-10-22 23:25:53.846096426 +0200
+@@ -219,7 +219,7 @@ static bool PluginLoadSymbols ( void * p
+ 
+ #if !USE_WINDOWS
+ #define offsetof(T, M) \
+-	(reinterpret_cast<char*>(&(((T*)1000)->M)) - reinterpret_cast<char*>(1000))
++	static_cast<int>(reinterpret_cast<char*>(&(((T*)1000)->M)) - reinterpret_cast<char*>(1000))
+ #endif
+ 
+ static SymbolDesc_t g_dSymbolsUDF[] =
+diff -up sphinx-2.2.11-release/src/sphinxrt.cpp.omv~ sphinx-2.2.11-release/src/sphinxrt.cpp
+--- sphinx-2.2.11-release/src/sphinxrt.cpp.omv~	2024-10-22 23:24:00.494859518 +0200
++++ sphinx-2.2.11-release/src/sphinxrt.cpp	2024-10-22 23:24:04.674905152 +0200
+@@ -4796,7 +4796,7 @@ int RtIndex_t::DebugCheck ( FILE * fp )
+ 			if ( !tWord.m_uDocs || !tWord.m_uHits || tWord.m_uHits<tWord.m_uDocs )
+ 			{
+ 				sWord[sizeof(sWord)-1] = '\0';
+-				LOC_FAIL(( fp, "invalid docs/hits (segment=%d, word=%d, read_wordid="UINT64_FMT
++				LOC_FAIL(( fp, "invalid docs/hits (segment=%d, word=%d, read_wordid=" UINT64_FMT
+ 					", read_word=%s, docs=%u, hits=%u)",
+ 					iSegment, nWordsRead, (uint64_t)tWord.m_uWordID,
+ 					sWord+1, tWord.m_uDocs, tWord.m_uHits ));
+diff -up sphinx-2.2.11-release/src/sphinxsort.cpp.omv~ sphinx-2.2.11-release/src/sphinxsort.cpp
+--- sphinx-2.2.11-release/src/sphinxsort.cpp.omv~	2024-10-22 23:23:40.424640375 +0200
++++ sphinx-2.2.11-release/src/sphinxsort.cpp	2024-10-22 23:23:44.734687439 +0200
+@@ -3395,15 +3395,15 @@ struct MatchExpr_fn : public ISphMatchCo
+ 		case SPH_KEYPART_WEIGHT:	SPH_TEST_PAIR ( a.m_iWeight, b.m_iWeight, _idx ); break; \
+ 		case SPH_KEYPART_INT: \
+ 		{ \
+-			register SphAttr_t aa = a.GetAttr ( t.m_tLocator[_idx] ); \
+-			register SphAttr_t bb = b.GetAttr ( t.m_tLocator[_idx] ); \
++			SphAttr_t aa = a.GetAttr ( t.m_tLocator[_idx] ); \
++			SphAttr_t bb = b.GetAttr ( t.m_tLocator[_idx] ); \
+ 			SPH_TEST_PAIR ( aa, bb, _idx ); \
+ 			break; \
+ 		} \
+ 		case SPH_KEYPART_FLOAT: \
+ 		{ \
+-			register float aa = a.GetAttrFloat ( t.m_tLocator[_idx] ); \
+-			register float bb = b.GetAttrFloat ( t.m_tLocator[_idx] ); \
++			float aa = a.GetAttrFloat ( t.m_tLocator[_idx] ); \
++			float bb = b.GetAttrFloat ( t.m_tLocator[_idx] ); \
+ 			SPH_TEST_PAIR ( aa, bb, _idx ) \
+ 			break; \
+ 		} \
+diff -up sphinx-2.2.11-release/src/sphinxstd.h.omv~ sphinx-2.2.11-release/src/sphinxstd.h
+--- sphinx-2.2.11-release/src/sphinxstd.h.omv~	2024-10-22 23:14:15.698447075 +0200
++++ sphinx-2.2.11-release/src/sphinxstd.h	2024-10-22 23:14:19.068484260 +0200
+@@ -274,7 +274,7 @@ inline int sphBitCount ( DWORD n )
+ 	// MIT HACKMEM count
+ 	// works for 32-bit numbers only
+ 	// fix last line for 64-bit numbers
+-	register DWORD tmp;
++	DWORD tmp;
+ 	tmp = n - ((n >> 1) & 033333333333) - ((n >> 2) & 011111111111);
+ 	return ( (tmp + (tmp >> 3) ) & 030707070707) % 63;
+ }
+diff -up sphinx-2.2.11-release/src/sphinxstemen.cpp.omv~ sphinx-2.2.11-release/src/sphinxstemen.cpp
+--- sphinx-2.2.11-release/src/sphinxstemen.cpp.omv~	2024-10-22 23:22:55.134145686 +0200
++++ sphinx-2.2.11-release/src/sphinxstemen.cpp	2024-10-22 23:22:58.394181301 +0200
+@@ -47,7 +47,7 @@ static unsigned char vowel_map[] =
+ 
+ static inline int stem_en_id ( unsigned char l )
+ {
+-	register unsigned char * v = stem_en_doubles;
++	unsigned char * v = stem_en_doubles;
+ 	while ( *v && *v!=l ) v++;
+ 	return ( *v==l ) ? 1 : 0;
+ }
+diff -up sphinx-2.2.11-release/src/sphinxstemru.inl.omv~ sphinx-2.2.11-release/src/sphinxstemru.inl
+--- sphinx-2.2.11-release/src/sphinxstemru.inl.omv~	2024-10-22 23:23:12.484335223 +0200
++++ sphinx-2.2.11-release/src/sphinxstemru.inl	2024-10-22 23:23:15.104363842 +0200
+@@ -413,7 +413,7 @@ STEM_RU_FUNC_I(ru_noun)
+ 
+ static int LOC_PREFIX(stem_ru_adjectival) ( LOC_CHAR_TYPE * word, int len )
+ {
+-	register int i = LOC_PREFIX(stem_ru_adj_i) ( word, len );
++	int i = LOC_PREFIX(stem_ru_adj_i) ( word, len );
+ 	if ( i )
+ 		i += LOC_PREFIX(stem_ru_part_i) ( word, len-i );
+ 	return i;
+@@ -422,7 +422,7 @@ static int LOC_PREFIX(stem_ru_adjectival
+ 
+ static int LOC_PREFIX(stem_ru_verb_ov) ( LOC_CHAR_TYPE * word, int len )
+ {
+-	register int i = LOC_PREFIX(stem_ru_verb_i) ( word, len );
++	int i = LOC_PREFIX(stem_ru_verb_i) ( word, len );
+ 	if ( i && (len>=i+2) && word[len-i-2] == RUS::O && word[len-i-1] == RUS::V )
+ 		return i+2;
+ 	return i;
+diff -up sphinx-2.2.11-release/src/sphinxutils.cpp.omv~ sphinx-2.2.11-release/src/sphinxutils.cpp
+--- sphinx-2.2.11-release/src/sphinxutils.cpp.omv~	2024-10-22 23:23:20.644424352 +0200
++++ sphinx-2.2.11-release/src/sphinxutils.cpp	2024-10-22 23:23:32.564554540 +0200
+@@ -2103,11 +2103,11 @@ void sphBacktrace ( int iFD, bool bSafe
+ #endif
+ 
+ #ifdef CONFIGURE_FLAGS
+-	sphSafeInfo ( iFD, "Configured with flags: "CONFIGURE_FLAGS );
++	sphSafeInfo ( iFD, "Configured with flags: " CONFIGURE_FLAGS );
+ #endif
+ 
+ #ifdef OS_UNAME
+-	sphSafeInfo ( iFD, "Host OS is "OS_UNAME );
++	sphSafeInfo ( iFD, "Host OS is " OS_UNAME );
+ #endif
+ 
+ 	bool bOk = true;

@@ -1,7 +1,50 @@
-diff -Naur sphinx-2.0.4-release/sphinx.conf.in sphinx-2.0.4-release.oden/sphinx.conf.in
---- sphinx-2.0.4-release/sphinx.conf.in	2011-04-18 16:39:40.000000000 +0200
-+++ sphinx-2.0.4-release.oden/sphinx.conf.in	2012-04-03 16:21:33.271286373 +0200
-@@ -270,7 +270,7 @@
+diff -up sphinx-2.2.11-release/sphinx-min.conf.in.p1~ sphinx-2.2.11-release/sphinx-min.conf.in
+--- sphinx-2.2.11-release/sphinx-min.conf.in.p1~	2024-10-22 22:59:14.968427608 +0200
++++ sphinx-2.2.11-release/sphinx-min.conf.in	2024-10-22 23:01:36.889938907 +0200
+@@ -24,7 +24,7 @@ source src1
+ index test1
+ {
+ 	source			= src1
+-	path			= @CONFDIR@/data/test1
++	path			= /var/lib/sphinx/test1
+ }
+ 
+ 
+@@ -33,7 +33,7 @@ index testrt
+ 	type			= rt
+ 	rt_mem_limit		= 128M
+ 
+-	path			= @CONFDIR@/data/testrt
++	path			= /var/lib/sphinx/testrt
+ 
+ 	rt_field		= title
+ 	rt_field		= content
+@@ -49,16 +49,16 @@ indexer
+ 
+ searchd
+ {
+-	listen			= 9312
++	listen			= 127.0.0.1:9312
+ 	listen			= 9306:mysql41
+-	log			= @CONFDIR@/log/searchd.log
+-	query_log		= @CONFDIR@/log/query.log
++	log			= /var/log/sphinx/searchd.log
++	query_log		= /var/log/sphinx/query.log
+ 	read_timeout		= 5
+ 	max_children		= 30
+-	pid_file		= @CONFDIR@/log/searchd.pid
++	pid_file		= /run/sphinx/searchd.pid
+ 	seamless_rotate		= 1
+ 	preopen_indexes		= 1
+ 	unlink_old		= 1
+ 	workers			= threads # for RT to work
+-	binlog_path		= @CONFDIR@/data
++	binlog_path		= /var/log/sphinx
+ }
+diff -up sphinx-2.2.11-release/sphinx.conf.in.p1~ sphinx-2.2.11-release/sphinx.conf.in
+--- sphinx-2.2.11-release/sphinx.conf.in.p1~	2016-07-19 12:42:18.000000000 +0200
++++ sphinx-2.2.11-release/sphinx.conf.in	2024-10-22 23:00:01.768925615 +0200
+@@ -271,7 +271,7 @@ source src1
  	# shell command to invoke xmlpipe stream producer
  	# mandatory
  	#
@@ -10,7 +53,7 @@ diff -Naur sphinx-2.0.4-release/sphinx.conf.in sphinx-2.0.4-release.oden/sphinx.
  
  	# xmlpipe2 field declaration
  	# multi-value, optional, default is empty
-@@ -328,7 +328,7 @@
+@@ -338,7 +338,7 @@ index test1
  
  	# index files path and file name, without extension
  	# mandatory, path must be writable, extensions will be auto-appended
@@ -19,7 +62,7 @@ diff -Naur sphinx-2.0.4-release/sphinx.conf.in sphinx-2.0.4-release.oden/sphinx.
  
  	# document attribute values (docinfo) storage mode
  	# optional, default is 'extern'
-@@ -363,13 +363,13 @@
+@@ -382,13 +382,13 @@ index test1
  	# optional, default is empty
  	# contents are plain text, charset_table and stemming are both applied
  	#
@@ -35,7 +78,7 @@ diff -Naur sphinx-2.0.4-release/sphinx.conf.in sphinx-2.0.4-release.oden/sphinx.
  
  
  	# tokenizing exceptions file
-@@ -378,7 +378,7 @@
+@@ -397,7 +397,7 @@ index test1
  	# plain text, case sensitive, space insensitive in map-from part
  	# one "Map Several Words => ToASingleOne" entry per line
  	#
@@ -43,8 +86,8 @@ diff -Naur sphinx-2.0.4-release/sphinx.conf.in sphinx-2.0.4-release.oden/sphinx.
 +	# exceptions		= /var/lib/sphinx/exceptions.txt
  
  
- 	# minimum indexed word length
-@@ -577,11 +577,10 @@
+ 	# embedded file size limit
+@@ -628,11 +628,10 @@ index test1
  # and may then be overridden in this index definition
  index test1stemmed : test1
  {
@@ -57,7 +100,7 @@ diff -Naur sphinx-2.0.4-release/sphinx.conf.in sphinx-2.0.4-release.oden/sphinx.
  # distributed index example
  #
  # this is a virtual index which can NOT be directly indexed,
-@@ -631,7 +630,7 @@
+@@ -708,7 +707,7 @@ index rt
  
  	# index files path and file name, without extension
  	# mandatory, path must be writable, extensions will be auto-appended
@@ -66,7 +109,7 @@ diff -Naur sphinx-2.0.4-release/sphinx.conf.in sphinx-2.0.4-release.oden/sphinx.
  
  	# RAM chunk size limit
  	# RT index will keep at most this much data in RAM, then flush to disk
-@@ -716,16 +715,16 @@
+@@ -810,16 +809,16 @@ searchd
  	# listen			= 192.168.0.1:9312
  	# listen			= 9312
  	# listen			= /var/run/searchd.sock
@@ -86,25 +129,16 @@ diff -Naur sphinx-2.0.4-release/sphinx.conf.in sphinx-2.0.4-release.oden/sphinx.
  
  	# client read timeout, seconds
  	# optional, default is 5
-@@ -741,7 +740,7 @@
+@@ -840,7 +839,7 @@ searchd
  
  	# PID file, searchd process ID file name
  	# mandatory
 -	pid_file		= @CONFDIR@/log/searchd.pid
-+	pid_file		= /var/run/sphinx/sphinx-searchd.pid
++	pid_file		= /run/sphinx/searchd.pid
  
- 	# max amount of matches the daemon ever keeps in RAM, per-index
- 	# WARNING, THERE'S ALSO PER-QUERY LIMIT, SEE SetLimits() API CALL
-@@ -787,7 +786,7 @@
- 	# searchd will (try to) log crashed query to 'crash_log_path.PID' file
- 	# optional, default is empty (do not create crash logs)
- 	#
--	# crash_log_path		= @CONFDIR@/log/crash
-+	# crash_log_path		= /var/log/sphinx/crash
- 
- 
- 	# max allowed per-query filter count
-@@ -852,7 +851,7 @@
+ 	# seamless rotate, prevents rotate stalls if precaching huge datasets
+ 	# optional, default is 1
+@@ -933,7 +932,7 @@ searchd
  	# optional, default is build-time configured data directory
  	#
  	# binlog_path		= # disable logging
@@ -113,47 +147,3 @@ diff -Naur sphinx-2.0.4-release/sphinx.conf.in sphinx-2.0.4-release.oden/sphinx.
  
  
  	# binlog flush/sync mode
-diff -Naur sphinx-2.0.4-release/sphinx-min.conf.in sphinx-2.0.4-release.oden/sphinx-min.conf.in
---- sphinx-2.0.4-release/sphinx-min.conf.in	2012-02-28 15:55:53.000000000 +0100
-+++ sphinx-2.0.4-release.oden/sphinx-min.conf.in	2012-04-03 16:21:48.580285642 +0200
-@@ -26,7 +26,7 @@
- index test1
- {
- 	source			= src1
--	path			= @CONFDIR@/data/test1
-+	path			= /var/lib/sphinx/test1
- 	docinfo			= extern
- 	charset_type		= sbcs
- }
-@@ -37,7 +37,7 @@
- 	type			= rt
- 	rt_mem_limit		= 32M
- 
--	path			= @CONFDIR@/data/testrt
-+	path			= /var/lib/sphinx/testrt
- 	charset_type		= utf-8
- 
- 	rt_field		= title
-@@ -54,17 +54,17 @@
- 
- searchd
- {
--	listen			= 9312
-+	listen			= 127.0.0.1:9312
- 	listen			= 9306:mysql41
--	log			= @CONFDIR@/log/searchd.log
--	query_log		= @CONFDIR@/log/query.log
-+	log			= /var/log/sphinx/sphinx-searchd.log
-+	query_log		= /var/log/sphinx/sphinx-query.log
- 	read_timeout		= 5
- 	max_children		= 30
--	pid_file		= @CONFDIR@/log/searchd.pid
-+	pid_file		= /var/run/sphinx/sphinx-searchd.pid
- 	max_matches		= 1000
- 	seamless_rotate		= 1
- 	preopen_indexes		= 1
- 	unlink_old		= 1
- 	workers			= threads # for RT to work
--	binlog_path		= @CONFDIR@/data
-+	binlog_path		= /var/lib/sphinx
- }
