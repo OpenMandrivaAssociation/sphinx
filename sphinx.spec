@@ -19,6 +19,10 @@ Patch4:         sphinx-2.0.3-fix_static.patch
 Patch5:		sphinx-2.0.3-gcc47.patch
 Patch6:		sphinx-2.2.11-compile.patch
 Requires(preun): rpm-helper
+BuildRequires:	autoconf
+BuildRequires:	automake
+BuildRequires:	libtool-base
+BuildRequires:	make
 BuildRequires:	expat-devel
 BuildRequires:	libstemmer-devel
 BuildRequires:	slibtool
